@@ -1,12 +1,18 @@
-const REPO_NAME = "next13-portfolio"
-const GOAL_START_DATE = new Date("2023-05-13T00:00:00.000Z")
-const COMMITS = 3
-const COMMIT_FREQUENCY = "day"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
-async function fetchGithubData() {
+import { Badge } from "./ui/badge"
+
+async function fetchGithubData(repoName: string) {
   try {
     const data = await fetch(
-      `https://api.github.com/repos/puneet-sarhali/${REPO_NAME}/commits`,
+      `https://api.github.com/repos/puneet-sarhali/${repoName}/commits`,
       {
         headers: {
           "X-GitHub-Api-Version": "2022-11-28",
@@ -41,19 +47,60 @@ function countCommitsByDate(commits: any, rangeHours: number): number {
   return count
 }
 
-export default async function githubMonitoring() {
-  const commitData = await fetchGithubData()
-  const commitCounts = countCommitsByDate(commitData, 168)
+export default async function githubMonitoring({
+  repoName,
+  commit,
+  commitFrequency,
+  goal,
+}: {
+  repoName: string
+  commit: number
+  commitFrequency: string
+  goal: string
+}) {
+  const commitData = await fetchGithubData(repoName)
+  const commitCounts = countCommitsByDate(commitData, 24)
   console.log(commitCounts)
 
   return (
-    <section>
-      <h2>Repo: {REPO_NAME}</h2>
-      <ul>
-        <li>Commits last 24 hours {countCommitsByDate(commitData, 24)}</li>
-        <li>Commits last 7 days {countCommitsByDate(commitData, 168)}</li>
-        <li>Commits last 30 days {countCommitsByDate(commitData, 720)}</li>
-      </ul>
-    </section>
+    <Card className="flex flex-col sm:flex-row pt-6">
+      <CardHeader className="p-0 px-6">
+        <Badge className="w-fit mb-4" variant="destructive">
+          pending
+        </Badge>
+        <CardTitle>{goal}</CardTitle>
+        <CardDescription>Repository: {repoName}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex gap-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Completion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl flex flex-col">
+              {Math.round((commitCounts / commit) * 100)}%
+              <span className="text-muted-foreground text-sm">
+                {commitCounts}/{commit}
+              </span>
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Money on the line
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl flex flex-col">$50</p>
+          </CardContent>
+        </Card>
+      </CardContent>
+      <CardFooter>
+        <p>Due in 7 hours</p>
+      </CardFooter>
+    </Card>
   )
 }
